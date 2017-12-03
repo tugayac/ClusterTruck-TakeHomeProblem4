@@ -10,6 +10,7 @@ TODO
     * It should utilize the Google Maps Directions API to get the directions from the address to the closest ClusterTruck kitchen.
 
 ## Assumptions
+* Users are located in USA and expect distance values to be in _miles_.
 * Google Maps Directions API can return multiple routes to a destination. As such, "Drive time to closest ClusterTruck" implies shortest drive time, regardless of driving distance.
 * It does not matter whether a user requests for the drive time to the nearest ClusterTruck kitchen inside or outside of a delivery area. They will always be given the drive time to the closest ClusterTruck kitchen.
 * If the closest ClusterTruck kitchen is currently closed:
@@ -31,7 +32,7 @@ There will only be a single endpoint that will accept a `POST` request, with the
 Users can make a request using the endpoint and any software that lets them make HTTP requests. If using `cURL`, here's an example:
 
 ```bash
-curl -X "POST" "http://www.example.com/url" \
+curl -X "POST" "http://www.example.com/api/drive-time" \
      -H "Content-Type: application/json" \
      -d $'{"address": "123 Main St, Anywhere, OH"}'
 ```
