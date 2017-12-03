@@ -9,7 +9,7 @@ import (
 )
 
 func readMockFile(filename string) []byte {
-	raw, err := ioutil.ReadFile(fmt.Sprintf("resources/mock-data/%s", filename))
+	raw, err := ioutil.ReadFile(fmt.Sprintf("resources/test-data/%s", filename))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
