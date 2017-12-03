@@ -10,7 +10,11 @@ TODO
     * It should utilize the Google Maps Directions API to get the directions from the address to the closest ClusterTruck kitchen.
 
 ## Assumptions
-TODO
+* Google Maps Directions API can return multiple routes to a destination. As such, "Drive time to closest ClusterTruck" implies shortest drive time, regardless of driving distance.
+* It does not matter whether a user requests for the drive time to the nearest ClusterTruck kitchen inside or outside of a delivery area. They will always be given the drive time to the closest ClusterTruck kitchen.
+* If the closest ClusterTruck kitchen is currently closed:
+    * The user is given the drive time to the closest _closed_ ClusterTruck kitchen and when that kitchen opens.
+    * In addition, the user will also be given the drive time to the closest _open_ ClusterTruck kitchen (if any).
 
 ## Specifications and Design
 ### API
@@ -66,6 +70,8 @@ The response will be similar if there was a server-related error, but the return
 #### ClusterTruck Kitchen Information
 This information will be retrieved from `https://api.staging.clustertruck.com/api/kitchens`, using the request header `Accept: application/vnd.api.clustertruck.com; version=2`.
 
+To avoid having to call the ClusterTruck Kitchen API too often, a cache will be used, with a TTL of 24 hours. A TTL of 24 hours is chosen because kitchens are not likely to change location, hours, etc frequently, and any new kitchens that are added will appear within 24 hours.
+
 #### Calculating Drive Time
 The Google Maps Directions API will be used to get the drive time from one address to the other. The server will need to use an API key. Examples of requests and responses can be found [here](https://developers.google.com/maps/documentation/directions/intro).
 
@@ -84,7 +90,7 @@ curl -X "POST" "http://www.example.com/url" \
 
 ## Rationale Behind Technology Used
 ### Go (Programming Language)
-Go is a great language to setup HTTP endpoints with the comprehensive http package it provides.
+Go is a great language to setup HTTP endpoints fast, with the comprehensive http package it provides.
 
 ### Docker
 Docker makes it very easy to create a container that can be easily deployed on any machine, without having to clutter the file system of the host system.
