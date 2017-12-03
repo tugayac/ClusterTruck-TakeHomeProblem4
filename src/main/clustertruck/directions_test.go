@@ -18,7 +18,7 @@ func TestGetGoogleMapsDirectionsWithSingleRoute(t *testing.T) {
 		},
 	}
 
-	directions := GetGoogleMapsDirections(client, "origin", "destination")
+	directions := getGoogleMapsDirections(client, "origin", "destination")
 
 	expected := "54.2 mi"
 	actual := directions.Routes[0].Legs[0].Distance.Text
@@ -38,7 +38,7 @@ func TestGetGoogleMapsDirectionsWithMultipleRoutes(t *testing.T) {
 		},
 	}
 
-	directions := GetGoogleMapsDirections(client, "origin", "destination")
+	directions := getGoogleMapsDirections(client, "origin", "destination")
 
 	expected := 3
 	actual := len(directions.Routes)

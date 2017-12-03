@@ -8,6 +8,13 @@ import (
 
 type Kitchens []Kitchen
 
+// Contains ClusterTruck Kitchen Information
+//
+// Please note that the "Hours" and "Timezone" fields are never used to find driving distance.
+// They are only included to demonstrate how custom unmarshaling (deserialization) of JSON can
+// be implemented. However, they could be used to direct the user to the closest open ClusterTruck
+// kitchen. For more information on how this could be done, see the README's "Future Improvements"
+// section.
 type Kitchen struct {
 	ID       string       `json:"id"`
 	Name     string       `json:"name"`
@@ -43,7 +50,7 @@ type OpenClosePair struct {
 	CloseTime string `json:"close_time"`
 }
 
-func GetClusterTruckKitchenInfo(httpClient HttpClient) Kitchens {
+func getClusterTruckKitchenInfo(httpClient HttpClient) map[string]Kitchen {
 	req, err := http.NewRequest("GET", "https://api.staging.clustertruck.com/api/kitchens", nil)
 	if err != nil {
 		panic(err)
@@ -66,7 +73,12 @@ func GetClusterTruckKitchenInfo(httpClient HttpClient) Kitchens {
 		panic(err)
 	}
 
-	return kitchens
+	kitchenMap := make(map[string]Kitchen)
+	for _, kitchen := range kitchens {
+		kitchenMap[kitchen.ID] = kitchen
+	}
+
+	return kitchenMap
 }
 
 func (k *Kitchens) UnmarshalJSON(b []byte) error {

@@ -12,6 +12,7 @@ TODO
 ## Assumptions
 * All ClusterTruck Kitchens are assumed to be "active" even if their `active` status is set to `false`, so that the values returned by this endpoint have some variance.
 * Users are located in USA and expect distance values to be in _miles_.
+* Users are assumed to give well-formed addresses that include the street, number, city, and state, such as `123 Main St, Anywhere, OH`.
 * Google Maps Directions API can return multiple routes to a destination. As such, "Drive time to closest ClusterTruck" implies shortest drive time, regardless of driving distance.
 * It does not matter whether a user requests for the drive time to the nearest ClusterTruck kitchen inside or outside of a delivery area. They will always be given the drive time to the closest ClusterTruck kitchen.
 * If the closest ClusterTruck kitchen is currently closed:

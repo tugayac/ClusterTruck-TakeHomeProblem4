@@ -35,7 +35,7 @@ type MeasurementValues struct {
 	Value int `json:"value"`
 }
 
-func GetGoogleMapsDirections(httpClient HttpClient, origin string, destination string) *GMapsDirections {
+func getGoogleMapsDirections(httpClient HttpClient, origin string, destination string) *GMapsDirections {
 	apiKey := "AIzaSyB50Zxex5E1MEA_E3F7M4BFYKdKkrFxPkE"
 	requestUrl := url.URL{
 		Scheme: "https",

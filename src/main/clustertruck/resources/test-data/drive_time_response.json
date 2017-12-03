@@ -1,0 +1,15 @@
+{
+  "drive_time": {
+    "text": "31 mins",
+    "value": 1867,
+    "value_unit": "seconds"
+  },
+  "drive_distance": {
+    "text": "21.7 mi",
+    "value": 34910,
+    "value_unit": "meters"
+  },
+  "location_name": "Bloomington",
+  "start_address": "Martinsville, IN",
+  "destination_address": "2618 E 10th St, Bloomington, IN, 47408"
+}

@@ -1,10 +1,23 @@
 package main
 
-func main() {
-	//SetupAPI()
+import (
+	"main/clustertruck"
+	"log"
+	"net/http"
+	"fmt"
+)
 
-	//GetClusterTruckKitchenInfo()
-	//httpClient := http.Client{}
-	//directions := clustertruck.GetGoogleMapsDirections(&httpClient, "3400 S Sare Rd, Apt 1022, Bloomington, IN, 47401",
-	//	"729 N. Pennsylvania St., Indianapolis, IN, 46204")
+const (
+	address = "0.0.0.0"
+	port = 8090
+)
+
+func main() {
+	httpMux := clustertruck.SetupAPI()
+
+	log.Printf("Server running on address and port %s:%d\n", address, port)
+	err := http.ListenAndServe(fmt.Sprintf("%s:%d", address, port), httpMux)
+	if err != nil {
+		log.Fatal("Server shutdown with error: " + err.Error())
+	}
 }

@@ -1,0 +1,47 @@
+{
+  "routes": [
+    {
+      "legs": [
+        {
+          "distance": {
+            "text": "102.5 mi",
+            "value": 164897
+          },
+          "duration": {
+            "text": "2 hours 46 mins",
+            "value": 9826
+          }
+        }
+      ]
+    },
+    {
+      "legs": [
+        {
+          "distance": {
+            "text": "43.4 mi",
+            "value": 69888
+          },
+          "duration": {
+            "text": "2 hours 4 mins",
+            "value": 10504
+          }
+        }
+      ]
+    },
+    {
+      "legs": [
+        {
+          "distance": {
+            "text": "4.0 mi",
+            "value": 6367
+          },
+          "duration": {
+            "text": "1 hours 30 mins",
+            "value": 5610
+          }
+        }
+      ]
+    }
+  ],
+  "status": "OK"
+}
