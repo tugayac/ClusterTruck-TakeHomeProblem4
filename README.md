@@ -11,14 +11,12 @@ TODO
 
 ## Assumptions
 * All ClusterTruck Kitchens are assumed to be "active" even if their `active` status is set to `false`, so that the values returned by this endpoint have some variance.
+* User's locale is `en_US` (American English, country USA).
 * Users are located in USA and expect distance values to be in _miles_.
 * Users are assumed to give well-formed addresses that include the street, number, city, and state, such as `123 Main St, Anywhere, OH`.
 * Google Maps Directions API can return multiple routes to a destination. As such, "Drive time to closest ClusterTruck" implies shortest drive time, regardless of driving distance.
 * It does not matter whether a user requests for the drive time to the nearest ClusterTruck kitchen inside or outside of a delivery area. They will always be given the drive time to the closest ClusterTruck kitchen.
-* If the closest ClusterTruck kitchen is currently closed:
-    * The user is given the drive time to the closest _closed_ ClusterTruck kitchen and when that kitchen opens.
-    * In addition, the user will also be given the drive time to the closest _open_ ClusterTruck kitchen (if any).
-    * Kitchens that do not have hours listed will be assumed to be open 24/7.
+* The hours of ClusterTruck kitchens are ignored.
 
 ## Specifications and Design
 ### API
@@ -47,8 +45,7 @@ The users can expect to receive a `200` response with header `Content-Type: appl
     "drive_time": {
         "value": 74829 // This will be in seconds
         "text": "20 hours 47 mins"
-    },
-    "errors": []
+    }
 }
 ```
 
@@ -56,14 +53,10 @@ If there is a client-related error, they will receive a `400` response, with con
 
 ```json
 {
-    "drive_time": null
-    "errors": [
-        {
-            "code": 1000,
-            "message": "The provided address was not valid, please check the address and try again."
-            "address": "3400 Invalid Street, Unknown, UGR, 00000"
-        }
-    ]
+    "error": {
+        "message": "The provided address was not valid, please check the address and try again."
+        "address": "3400 Invalid Street, Unknown, UGR, 00000"
+    }
 }
 ```
 
@@ -89,8 +82,7 @@ curl -X "POST" "http://www.example.com/url" \
      -d $'{"address": "123 Main St, Anywhere, OH"}'
 ```
 
-* If no `Access-Key` is provided, the user will receive a `401` error.
-* If an invalid `Access-Key` is provided, the user will receive a `403` error.
+If no `Access-Key` is provided or it's invalid, the user will receive an HTTP `401` error.
 
 ## Rationale Behind Technology Used
 ### Go (Programming Language)
