@@ -10,12 +10,14 @@ TODO
     * It should utilize the Google Maps Directions API to get the directions from the address to the closest ClusterTruck kitchen.
 
 ## Assumptions
+* All ClusterTruck Kitchens are assumed to be "active" even if their `active` status is set to `false`, so that the values returned by this endpoint have some variance.
 * Users are located in USA and expect distance values to be in _miles_.
 * Google Maps Directions API can return multiple routes to a destination. As such, "Drive time to closest ClusterTruck" implies shortest drive time, regardless of driving distance.
 * It does not matter whether a user requests for the drive time to the nearest ClusterTruck kitchen inside or outside of a delivery area. They will always be given the drive time to the closest ClusterTruck kitchen.
 * If the closest ClusterTruck kitchen is currently closed:
     * The user is given the drive time to the closest _closed_ ClusterTruck kitchen and when that kitchen opens.
     * In addition, the user will also be given the drive time to the closest _open_ ClusterTruck kitchen (if any).
+    * Kitchens that do not have hours listed will be assumed to be open 24/7.
 
 ## Specifications and Design
 ### API
