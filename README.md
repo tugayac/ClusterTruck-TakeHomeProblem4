@@ -17,7 +17,9 @@ All instructions were tested on a Mac, but should work without a problem on Linu
 
     You can set whatever you want for the access_key. See the "Making a Call" section below. You need to enable the [Google Maps Directions API](https://developers.google.com/maps/documentation/directions/intro) in order to get an API key.
 1. Build the docker container using the `docker-build.sh` script (provided)
-1. Run the docker container using the `docker-run.sh` script (provided). You may change the port from `8090` to anything you like
+1. Run the docker container using the `docker-run.sh` script (provided). You may change the port from `8090` to anything you like.
+
+Note: Use `Ctrl + P` then `Ctrl + Q` to detach from the docker container after it starts.
 
 ### Making a Call
 You can download a tool called [_Postman_](https://www.getpostman.com/) and make a request using that or use `cURL`:
@@ -31,6 +33,8 @@ curl -X "POST" "http://localhost:8090/api/drive-time" \
 
 Where `<access_key>` is the same access key mentioned above. If you are not running Docker locally, an access key should have already been provided for you, in which case you can use that.
 
+**Note:** Users are assumed to always give well-formed addresses that include the number, street, city, and state, such as `123 Main St, Anywhere, OH` (zip code can be included as well). If they do not use this format, they may not get the best results.
+
 ## Application Requirements
 * Build an HTTP endpoint that will receive a street address and return the drive time to the closest ClusterTruck kitchen.
     * It should utilize the ClusterTruck Kitchen API to get the kitchen addresses.
@@ -40,7 +44,7 @@ Where `<access_key>` is the same access key mentioned above. If you are not runn
 * All ClusterTruck Kitchens are assumed to be "active" even if their `active` status is set to `false`, so that the values returned by the drive time endpoint have some variance.
 * User's locale is `en_US` (American English, country USA).
 * Users are located in the USA and expect distance values to be in _miles_.
-* Users are assumed to always give well-formed addresses that include the number, street, city, and state, such as `123 Main St, Anywhere, OH`. If they do not use this format, they will get an error.
+* Users are assumed to always give well-formed addresses that include the number, street, city, and state, such as `123 Main St, Anywhere, OH` (zip code can be included as well). If they do not use this format, they may not get the best results
 * Google Maps Directions API can return multiple routes to a destination. As such, "Drive time to closest ClusterTruck" implies shortest drive time, regardless of driving distance.
 * It does not matter whether a user requests for the drive time to the nearest ClusterTruck kitchen inside or outside of a delivery area. They will always be given the drive time to the closest ClusterTruck kitchen.
 * The hours of ClusterTruck kitchens are ignored. This means a user will always be given the drive time to the closest ClusterTruck, regardless of whether it's open or closed.
@@ -55,7 +59,7 @@ There will only be a single endpoint that will accept a `POST` request, with the
 }
 ```
 
-**It is expected that the user will input a valid address that can be found by Google.**
+**It is expected that the user will input a valid address that can be found by Google Maps.**
 
 Users can make a request using the endpoint and any software that lets them make HTTP requests. If using `cURL`, here's an example:
 
@@ -91,8 +95,10 @@ If there is a client-related error, they will receive a `400` response, with con
 ```json
 {
     "error": {
-        "message": "The provided address was not valid, please check the address and try again."
-        "address": "3400 Invalid Street, Unknown, UGR, 00000"
+        "message": "The provided address was not valid, please check the address and try again.",
+        "parameters": {
+            "address": "3400 Invalid Street, Unknown, UGR, 00000"
+        }
     }
 }
 ```

@@ -64,7 +64,7 @@ func verifyAccessKeyMiddleware(next http.Handler) http.Handler {
 func unauthorizedError(response http.ResponseWriter, request *http.Request) {
 	response.WriteHeader(http.StatusUnauthorized)
 	response.Write(marshalError(&HTTPError{
-		Message: "Your Access could not be verified. Please check your Access Key and try again.",
+		Message: "Your Access Key could not be verified. Please check your Access Key and try again.",
 		Parameters: map[string]interface{}{
 			"access_key": request.Header.Get("Access-Key"),
 		},
