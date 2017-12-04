@@ -93,68 +93,9 @@ func (k *Kitchens) UnmarshalJSON(b []byte) error {
 		(*k)[i].ID = kitchen["id"].(string)
 		(*k)[i].Name = kitchen["name"].(string)
 
-		// Condense address into one variable, for easy searching with GMaps Directions API
-		//
-		// We perform a check to see if the value exists (ok == false if type is not string)
-		// and also check the length of the variable to make sure it's not empty
-		fullAddress := ""
-		address1, ok := kitchen["address_1"].(string)
-		if ok && len(address1) > 0 {
-			fullAddress += address1
-		}
-		address2, ok := kitchen["address_2"].(string)
-		if ok && len(address2) > 0 {
-			fullAddress += " " + address2
-		}
-		city, ok := kitchen["city"].(string)
-		if ok && len(city) > 0 {
-			fullAddress += ", " + city
-		}
-		state, ok := kitchen["state"].(string)
-		if ok && len(state) > 0 {
-			fullAddress += ", " + state
-		}
-		zipCode, ok := kitchen["zip_code"].(string)
-		if ok && len(zipCode) > 0 {
-			fullAddress += ", " + zipCode
-		}
-		(*k)[i].Address = fullAddress
+		unmarshalAddress(kitchen, k, i)
 
-		// Condense hours of a kitchen into an easier to read format
-		kitchenHoursRaw, ok := kitchen["hours"].(map[string]interface{})
-		if ok {
-			kitchenHours := KitchenHours{
-				Sunday: OpenClosePair{
-					OpenTime:  getHours(kitchenHoursRaw, "sunday", true),
-					CloseTime: getHours(kitchenHoursRaw, "sunday", false),
-				},
-				Monday: OpenClosePair{
-					OpenTime:  getHours(kitchenHoursRaw, "monday", true),
-					CloseTime: getHours(kitchenHoursRaw, "monday", false),
-				},
-				Tuesday: OpenClosePair{
-					OpenTime:  getHours(kitchenHoursRaw, "tuesday", true),
-					CloseTime: getHours(kitchenHoursRaw, "tuesday", false),
-				},
-				Wednesday: OpenClosePair{
-					OpenTime:  getHours(kitchenHoursRaw, "wednesday", true),
-					CloseTime: getHours(kitchenHoursRaw, "wednesday", false),
-				},
-				Thursday: OpenClosePair{
-					OpenTime:  getHours(kitchenHoursRaw, "thursday", true),
-					CloseTime: getHours(kitchenHoursRaw, "thursday", false),
-				},
-				Friday: OpenClosePair{
-					OpenTime:  getHours(kitchenHoursRaw, "friday", true),
-					CloseTime: getHours(kitchenHoursRaw, "friday", false),
-				},
-				Saturday: OpenClosePair{
-					OpenTime:  getHours(kitchenHoursRaw, "saturday", true),
-					CloseTime: getHours(kitchenHoursRaw, "saturday", false),
-				},
-			}
-			(*k)[i].Hours = kitchenHours
-		}
+		unmarshalHours(kitchen, k, i)
 
 		timezone, ok := kitchen["timezone"].(string)
 		if ok && len(timezone) > 0 {
@@ -163,6 +104,61 @@ func (k *Kitchens) UnmarshalJSON(b []byte) error {
 	}
 
 	return nil
+}
+
+// Condense address into one variable, for easy searching with GMaps Directions API
+//
+// We perform a check to see if the value exists (ok == false if type is not string)
+// and also check the length of the variable to make sure it's not empty
+func unmarshalAddress(kitchen map[string]interface{}, k *Kitchens, i int) {
+	fullAddress := ""
+	address1, ok := kitchen["address_1"].(string)
+	if ok && len(address1) > 0 {
+		fullAddress += address1
+	}
+	address2, ok := kitchen["address_2"].(string)
+	if ok && len(address2) > 0 {
+		fullAddress += " " + address2
+	}
+	city, ok := kitchen["city"].(string)
+	if ok && len(city) > 0 {
+		fullAddress += ", " + city
+	}
+	state, ok := kitchen["state"].(string)
+	if ok && len(state) > 0 {
+		fullAddress += ", " + state
+	}
+	zipCode, ok := kitchen["zip_code"].(string)
+	if ok && len(zipCode) > 0 {
+		fullAddress += ", " + zipCode
+	}
+
+	(*k)[i].Address = fullAddress
+}
+
+// Condense hours of a kitchen into an easier to read format
+func unmarshalHours(kitchen map[string]interface{}, k *Kitchens, i int) bool {
+	kitchenHoursRaw, ok := kitchen["hours"].(map[string]interface{})
+	if ok {
+		kitchenHours := KitchenHours{
+			Sunday: createOpenClosePair(kitchenHoursRaw, "sunday"),
+			Monday: createOpenClosePair(kitchenHoursRaw, "monday"),
+			Tuesday: createOpenClosePair(kitchenHoursRaw, "tuesday"),
+			Wednesday: createOpenClosePair(kitchenHoursRaw, "wednesday"),
+			Thursday: createOpenClosePair(kitchenHoursRaw, "thursday"),
+			Friday: createOpenClosePair(kitchenHoursRaw, "friday"),
+			Saturday: createOpenClosePair(kitchenHoursRaw, "saturday"),
+		}
+		(*k)[i].Hours = kitchenHours
+	}
+	return ok
+}
+
+func createOpenClosePair(kitchenHoursRaw map[string]interface{}, dayOfWeek string) OpenClosePair {
+	return OpenClosePair{
+		OpenTime:  getHours(kitchenHoursRaw, dayOfWeek, true),
+		CloseTime: getHours(kitchenHoursRaw, dayOfWeek, false),
+	}
 }
 
 func getHours(listOfHours map[string]interface{}, dayOfWeek string, openTime bool) string {

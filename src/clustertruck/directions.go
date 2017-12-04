@@ -40,6 +40,7 @@ type MeasurementValues struct {
 
 func getGoogleMapsDirections(httpClient HttpClient, origin string, destination string,
 	kitchenId string, output chan<- *KitchenIDDirectionsPair, waitGroup *sync.WaitGroup) {
+
 	defer waitGroup.Done()
 
 	apiKey := os.Getenv("CT_GMAPS_API_KEY")
@@ -68,6 +69,7 @@ func getGoogleMapsDirections(httpClient HttpClient, origin string, destination s
 	if err != nil {
 		panic(err)
 	}
+	defer res.Body.Close()
 
 	var directions GMapsDirections
 	err = json.Unmarshal(body, &directions)
@@ -76,12 +78,12 @@ func getGoogleMapsDirections(httpClient HttpClient, origin string, destination s
 	}
 
 	output <- &KitchenIDDirectionsPair{
-		ID: kitchenId,
+		ID:         kitchenId,
 		Directions: &directions,
 	}
 }
 
-func findShortestDriveTimeOfAllRoutes(routes []Route) *Route {
+func findShortestRouteByDriveTime(routes []Route) *Route {
 	shortestDriveTimeRoute := Route{
 		Legs: []Leg{
 			{

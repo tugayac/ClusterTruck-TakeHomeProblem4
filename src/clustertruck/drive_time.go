@@ -5,6 +5,7 @@ import (
 	"sync"
 )
 
+// Represents the request sent by the user
 type RequestPayload struct {
 	// The address given by the user
 	StartingAddress string `json:"address"`
@@ -39,13 +40,14 @@ type KitchenIDDirectionsPair struct {
 
 func findDriveTimeToClosestClusterTruckKitchen(httpClient HttpClient, startingAddress string) *ClosestClusterTruck {
 	kitchens := getClusterTruckKitchenInfo(httpClient)
-	drivingTimesToKitchen := make(map[string]*Route)
-	allDirections := make(chan *KitchenIDDirectionsPair, 6)
 
-	getDirectionsConcurrently(kitchens, httpClient, startingAddress, allDirections)
+	kitchenIdToRouteMap := make(map[string]*Route)
+	allPossibleDirections := make(chan *KitchenIDDirectionsPair, len(kitchens))
+
+	getDirectionsConcurrently(kitchens, httpClient, startingAddress, allPossibleDirections)
 
 	closestKitchenData, directionsToClosestKitchen :=
-		findClosestKitchenAndAssociatedDrivingData(allDirections, drivingTimesToKitchen, kitchens)
+		findClosestKitchenAndRoute(allPossibleDirections, kitchenIdToRouteMap, kitchens)
 
 	return &ClosestClusterTruck{
 		DriveTime: ResponseMeasurementValues{
@@ -63,51 +65,52 @@ func findDriveTimeToClosestClusterTruckKitchen(httpClient HttpClient, startingAd
 		DestinationAddress: closestKitchenData.Address,
 	}
 }
-func findClosestKitchenAndAssociatedDrivingData(allDirections chan *KitchenIDDirectionsPair,
-	drivingTimesToKitchen map[string]*Route, kitchens map[string]Kitchen) (*Kitchen, *Leg) {
-
-	for kitchenDirectionsPair := range allDirections {
-		if len(kitchenDirectionsPair.Directions.Routes) > 1 {
-			shortestDriveTimeRoute := findShortestDriveTimeOfAllRoutes(kitchenDirectionsPair.Directions.Routes)
-			drivingTimesToKitchen[kitchenDirectionsPair.ID] = shortestDriveTimeRoute
-		} else {
-			drivingTimesToKitchen[kitchenDirectionsPair.ID] = &kitchenDirectionsPair.Directions.Routes[0]
-		}
-	}
-
-	closestKitchenId := findClosestClusterTruckByDriveTime(drivingTimesToKitchen)
-	closestKitchenData := kitchens[closestKitchenId]
-	directionsToClosestKitchen := drivingTimesToKitchen[closestKitchenId].Legs[0]
-
-	return &closestKitchenData, &directionsToClosestKitchen
-}
-
 // This function makes concurrent calls to the GMaps Directions API,
 // to avoid having to wait for the previous call to the GMaps
 // Directions API.
 //
-// Without this optimization, subsequent calls take ~750ms to complete.
-// With this optimization, subsequent calls take ~150ms to complete,
-// which is about a 500% improvement (i.e. 5 times more calls can be
+// Without this optimization, subsequent calls take ~1000ms to complete.
+// With this optimization, subsequent calls take ~250ms to complete,
+// which is about a 400% improvement (i.e. 4 times more calls can be
 // processed in the same amount of time).
 func getDirectionsConcurrently(kitchens map[string]Kitchen, httpClient HttpClient, startingAddress string,
-	allDirections chan *KitchenIDDirectionsPair) {
+	allPossibleDirections chan *KitchenIDDirectionsPair) {
 
 	var waitGroup sync.WaitGroup
 	waitGroup.Add(len(kitchens))
+
 	for _, kitchen := range kitchens {
 		go getGoogleMapsDirections(httpClient, startingAddress, kitchen.Address,
-			kitchen.ID, allDirections, &waitGroup)
+			kitchen.ID, allPossibleDirections, &waitGroup)
 	}
 	waitGroup.Wait()
-	close(allDirections)
+	close(allPossibleDirections)
 }
 
-func findClosestClusterTruckByDriveTime(drivingTimesToKitchen map[string]*Route) string {
+func findClosestKitchenAndRoute(allPossibleDirections chan *KitchenIDDirectionsPair,
+	kitchenIdToRouteMap map[string]*Route, kitchens map[string]Kitchen) (*Kitchen, *Leg) {
+
+	for kitchenIdDirectionsPair := range allPossibleDirections {
+		if len(kitchenIdDirectionsPair.Directions.Routes) > 1 {
+			shortestDriveTimeRoute := findShortestRouteByDriveTime(kitchenIdDirectionsPair.Directions.Routes)
+			kitchenIdToRouteMap[kitchenIdDirectionsPair.ID] = shortestDriveTimeRoute
+		} else {
+			kitchenIdToRouteMap[kitchenIdDirectionsPair.ID] = &kitchenIdDirectionsPair.Directions.Routes[0]
+		}
+	}
+
+	closestKitchenId := findClosestClusterTruckByDriveTime(kitchenIdToRouteMap)
+	closestKitchenData := kitchens[closestKitchenId]
+	directionsToClosestKitchen := kitchenIdToRouteMap[closestKitchenId].Legs[0]
+
+	return &closestKitchenData, &directionsToClosestKitchen
+}
+
+func findClosestClusterTruckByDriveTime(kitchenIdToRouteMap map[string]*Route) string {
 	shortestDriveTime := math.MaxInt32
 	closestKitchenId := ""
-	for kitchenId, direction := range drivingTimesToKitchen {
-		driveTime := direction.Legs[0].Duration.Value
+	for kitchenId, directions := range kitchenIdToRouteMap {
+		driveTime := directions.Legs[0].Duration.Value
 		if driveTime < shortestDriveTime {
 			shortestDriveTime = driveTime
 			closestKitchenId = kitchenId
