@@ -131,4 +131,29 @@ Docker makes it very easy to create a container that can be deployed on any mach
 ### Caching Requests
 If we detect that some users frequently make requests to our API from the same starting address, we may want to cache the driving time information we get from the GMaps Directions API (since this part of our application takes the longest).
 
-TODO
+Same can be done for requests made to the ClusterTruck Kitchen API: Since kitchen information is unlikely to change often, we could cache the information we get from this API with a TTL of 24 hours.
+
+### Driving Time Based on Kitchen Hours
+Currently, kitchen hours are ignored when returning driving times. However, the results can be improved to route a user to the closest _open_ ClusterTruck location. Here's one way of doing that without changing the input format:
+
+1. Extract the city and state from the address sent in the request. For example `Bloomington, IN`.
+1. Use the [GMaps Geocoding API](https://developers.google.com/maps/documentation/geocoding/start) to get the coordinates of `Bloomington, IN`. In this case, that would be `(39.16648, -86.526918)` (latitude and longitude).
+1. Send the coordinates received in the step above to the [Google Time Zone API](https://developers.google.com/maps/documentation/timezone/start) to get timezone information. The result would be something like the following for `(39.16648, -86.526918)`:
+    ```json
+    {
+       "dstOffset" : 3600,
+       "rawOffset" : -18000,
+       "status" : "OK",
+       "timeZoneId" : "America/New_York",
+       "timeZoneName" : "Eastern Daylight Time"
+    }
+    ```
+1. Convert all ClusterTruck kitchen hours to UTC.
+1. Make a request to the GMaps Directions API as usual.
+1. Calculate the estimated arrival time (in UTC) based on results from the GMaps Directions API (we could ask the GMaps Directions API to return the arrival time as well, but it's [only for public transportation](https://developers.google.com/maps/documentation/directions/intro)).
+1. Return the driving time to the closest kitchen that will be _open_ when the user arrives there.
+
+### Better Error Handling
+Depending on who the end user will be, better error messages can be returned. For example, instead of telling the user that the "Google Maps Directions API returned a 400 error", we could tell them that "No results could be found due to a problem with external services. Please try again in a minute.".
+
+Currently, the end user is assumed to be a developer, and as such, detailed error messages (directly from the failing parts of the application) are returned in case of an error.
