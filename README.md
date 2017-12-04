@@ -2,7 +2,34 @@
 This is Arda Tugay's solution to one of ClusterTrucker's take home problems. The original problem can be found [here](https://github.com/ClusterTruck/take-home-problems/blob/master/engineering/problem-4.md).
 
 ## Usage
-TODO
+All instructions were tested on a Mac, but should work without a problem on Linux devices as well.
+
+### Requirements
+* Docker (latest community edition)
+
+### Running Docker Container Locally (Optional)
+1. Create an environment file (`.env` file) and add the following to it:
+
+    ```
+    CT_API_ACCESS_KEY=<access_key>
+    CT_GMAPS_API_KEY=<gmaps_directions_api_key>
+    ```
+
+    You can set whatever you want for the access_key. See the "Making a Call" section below. You need to enable the [Google Maps Directions API](https://developers.google.com/maps/documentation/directions/intro) in order to get an API key.
+1. Build the docker container using the `docker-build.sh` script (provided)
+1. Run the docker container using the `docker-run.sh` script (provided). You may change the port from `8090` to anything you like
+
+### Making a Call
+You can download a tool called [_Postman_](https://www.getpostman.com/) and make a request using that or use `cURL`:
+
+```bash
+curl -X "POST" "http://localhost:8090/api/drive-time" \
+     -H "Content-Type: application/json" \
+     -H "Access-Key: <access_key>" \
+     -d $'{"address": "123 Main St, Anywhere, OH"}'
+```
+
+Where `<access_key>` is the same access key mentioned above. If you are not running Docker locally, an access key should have already been provided for you, in which case you can use that.
 
 ## Application Requirements
 * Build an HTTP endpoint that will receive a street address and return the drive time to the closest ClusterTruck kitchen.
@@ -35,6 +62,7 @@ Users can make a request using the endpoint and any software that lets them make
 ```bash
 curl -X "POST" "http://www.example.com/api/drive-time" \
      -H "Content-Type: application/json" \
+     -H "Access-Key: <access_key>" \
      -d $'{"address": "123 Main St, Anywhere, OH"}'
 ```
 
@@ -90,9 +118,6 @@ Go is a great language to setup HTTP endpoints fast, with the comprehensive http
 
 ### Docker
 Docker makes it very easy to create a container that can be easily deployed on any machine, without having to clutter the file system of the host system.
-
-## Deploying and Running Locally
-TODO
 
 ## Future Improvements
 TODO
