@@ -1,7 +1,7 @@
 package main
 
 import (
-	"main/clustertruck"
+	"clustertruck"
 	"log"
 	"net/http"
 	"fmt"

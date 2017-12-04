@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"io/ioutil"
 	"encoding/json"
+	"os"
 )
 
 // Contains data returned from a call to the GMaps Directions API
@@ -36,7 +37,7 @@ type MeasurementValues struct {
 }
 
 func getGoogleMapsDirections(httpClient HttpClient, origin string, destination string) *GMapsDirections {
-	apiKey := "AIzaSyB50Zxex5E1MEA_E3F7M4BFYKdKkrFxPkE"
+	apiKey := os.Getenv("CT_GMAPS_API_KEY")
 	requestUrl := url.URL{
 		Scheme: "https",
 		Path:   "maps.googleapis.com/maps/api/directions/json",
