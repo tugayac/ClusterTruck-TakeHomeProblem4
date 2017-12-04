@@ -4,38 +4,45 @@ import (
 	"net/http"
 	"io/ioutil"
 	"encoding/json"
+	"fmt"
+	"errors"
 )
 
 type Kitchens []Kitchen
 
 // Contains ClusterTruck Kitchen Information
 type Kitchen struct {
-	ID       string       `json:"id"`
-	Name     string       `json:"name"`
-	Address  string       `json:"-"`
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Address string `json:"-"`
 }
 
-func getClusterTruckKitchenInfo(httpClient HttpClient) map[string]Kitchen {
+func getClusterTruckKitchenInfo(httpClient HttpClient) (map[string]Kitchen, error) {
 	req, err := http.NewRequest("GET", "https://api.staging.clustertruck.com/api/kitchens", nil)
 	if err != nil {
-		panic(err)
+		return nil, errors.New(
+			fmt.Sprintf("There was an error creating a request to get kitchen info: %s", err.Error()))
 	}
 	req.Header.Add("Accept", "application/vnd.api.clustertruck.com; version=2")
 
 	res, err := httpClient.Do(req)
 	if err != nil {
-		panic(err)
+		return nil, errors.New(fmt.Sprintf("There was an error sending a request to the ClusterTruck "+
+			"Kitchens API: %s", err.Error()))
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		panic(err)
+		return nil, errors.New(
+			fmt.Sprintf("There was an error reading the response from the ClusterTruck Kitchens API: %s",
+				err.Error()))
 	}
 
 	var kitchens Kitchens
 	err = json.Unmarshal(body, &kitchens)
 	if err != nil {
-		panic(err)
+		return nil, errors.New(fmt.Sprintf("There was an error deserializing the response from the "+
+			"ClusterTruck Kitchens API: %s", err.Error()))
 	}
 
 	kitchenMap := make(map[string]Kitchen)
@@ -43,7 +50,7 @@ func getClusterTruckKitchenInfo(httpClient HttpClient) map[string]Kitchen {
 		kitchenMap[kitchen.ID] = kitchen
 	}
 
-	return kitchenMap
+	return kitchenMap, nil
 }
 
 func (k *Kitchens) UnmarshalJSON(b []byte) error {

@@ -44,7 +44,10 @@ type KitchenIDDirectionsPair struct {
 func findDriveTimeToClosestClusterTruckKitchen(httpClient HttpClient,
 	startingAddress string) (*ClosestClusterTruck, error) {
 
-	kitchens := getClusterTruckKitchenInfo(httpClient)
+	kitchens, err := getClusterTruckKitchenInfo(httpClient)
+	if err != nil {
+		return nil, err
+	}
 
 	kitchenIdToRouteMap := make(map[string]*Route)
 	allPossibleDirections := make(chan *KitchenIDDirectionsPair, len(kitchens))
