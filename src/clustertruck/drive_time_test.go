@@ -56,10 +56,33 @@ func TestFindDriveTimeToClosestClusterTruckKitchen(t *testing.T) {
 		},
 	}
 
-	closestClusterTruckInfo := findDriveTimeToClosestClusterTruckKitchen(client, "startingAddress")
+	closestClusterTruckInfo, _ := findDriveTimeToClosestClusterTruckKitchen(client, "startingAddress")
 	assertResult(t, "21 mins", closestClusterTruckInfo.DriveTime.Text)
 	assertResult(t, 2001, closestClusterTruckInfo.DriveTime.Value)
 	assertResult(t, "96.2 mi", closestClusterTruckInfo.DriveDistance.Text)
 	assertResult(t, 154775, closestClusterTruckInfo.DriveDistance.Value)
 	assertResult(t, "342 East Long Street, Columbus, OH, 43215", closestClusterTruckInfo.DestinationAddress)
+}
+
+func TestFindDriveTimeToClosestClusterWhenNoRoutesAreFound(t *testing.T) {
+	client := &MockClient{
+		DoFunc: func(req *http.Request) (*http.Response, error) {
+			if strings.Contains(req.URL.String(), "googleapis") {
+				mockGmapsResponseData := readMockFile("directions_response_no_route.json")
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Body:       noopCloser{bytes.NewBuffer(mockGmapsResponseData)},
+				}, nil
+			} else {
+				mockKitchenResponse := readMockFile("kitchen_response.json")
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Body:       noopCloser{bytes.NewBuffer(mockKitchenResponse)},
+				}, nil
+			}
+		},
+	}
+
+	_, err := findDriveTimeToClosestClusterTruckKitchen(client, "startingAddress")
+	assertResult(t, "no routes were found from your starting address", err.Error())
 }

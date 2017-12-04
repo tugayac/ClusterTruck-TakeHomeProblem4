@@ -26,8 +26,11 @@ func SetupAPI(httpClient HttpClient) *http.ServeMux {
 				return
 			}
 
-			closestClusterTruckInfo :=
+			closestClusterTruckInfo, err :=
 				findDriveTimeToClosestClusterTruckKitchen(httpClient, requestPayload.StartingAddress)
+			if err != nil {
+				errorWhileSearchingForDriveTime(response, err)
+			}
 
 			responseBody, err := json.Marshal(closestClusterTruckInfo)
 			if err != nil {
@@ -98,5 +101,13 @@ func requestBodyCouldNotBeReadError(response http.ResponseWriter, err error, req
 		Parameters: map[string]interface{}{
 			"body": request.Body,
 		},
+	}))
+}
+
+func errorWhileSearchingForDriveTime(response http.ResponseWriter, err error) {
+	response.WriteHeader(http.StatusBadRequest)
+	response.Write(marshalError(&HTTPError{
+		Message: fmt.Sprintf("An error occurred while searching for drive time: %s",
+			err.Error()),
 	}))
 }

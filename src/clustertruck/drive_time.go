@@ -3,6 +3,7 @@ package clustertruck
 import (
 	"math"
 	"sync"
+	"errors"
 )
 
 // Represents the request sent by the user
@@ -36,9 +37,13 @@ type ResponseMeasurementValues struct {
 type KitchenIDDirectionsPair struct {
 	ID         string
 	Directions *GMapsDirections
+	// An error is added in case there is any
+	Error      string
 }
 
-func findDriveTimeToClosestClusterTruckKitchen(httpClient HttpClient, startingAddress string) *ClosestClusterTruck {
+func findDriveTimeToClosestClusterTruckKitchen(httpClient HttpClient,
+	startingAddress string) (*ClosestClusterTruck, error) {
+
 	kitchens := getClusterTruckKitchenInfo(httpClient)
 
 	kitchenIdToRouteMap := make(map[string]*Route)
@@ -46,8 +51,11 @@ func findDriveTimeToClosestClusterTruckKitchen(httpClient HttpClient, startingAd
 
 	getDirectionsConcurrently(kitchens, httpClient, startingAddress, allPossibleDirections)
 
-	closestKitchenData, directionsToClosestKitchen :=
+	closestKitchenData, directionsToClosestKitchen, err :=
 		findClosestKitchenAndRoute(allPossibleDirections, kitchenIdToRouteMap, kitchens)
+	if err != nil {
+		return nil, err
+	}
 
 	return &ClosestClusterTruck{
 		DriveTime: ResponseMeasurementValues{
@@ -63,8 +71,9 @@ func findDriveTimeToClosestClusterTruckKitchen(httpClient HttpClient, startingAd
 		LocationName:       closestKitchenData.Name,
 		StartAddress:       startingAddress,
 		DestinationAddress: closestKitchenData.Address,
-	}
+	}, nil
 }
+
 // This function makes concurrent calls to the GMaps Directions API,
 // to avoid having to wait for the previous call to the GMaps
 // Directions API.
@@ -88,25 +97,34 @@ func getDirectionsConcurrently(kitchens map[string]Kitchen, httpClient HttpClien
 }
 
 func findClosestKitchenAndRoute(allPossibleDirections chan *KitchenIDDirectionsPair,
-	kitchenIdToRouteMap map[string]*Route, kitchens map[string]Kitchen) (*Kitchen, *Leg) {
+	kitchenIdToRouteMap map[string]*Route, kitchens map[string]Kitchen) (*Kitchen, *Leg, error) {
 
 	for kitchenIdDirectionsPair := range allPossibleDirections {
-		if len(kitchenIdDirectionsPair.Directions.Routes) > 1 {
+		numberOfRoutes := len(kitchenIdDirectionsPair.Directions.Routes)
+		if numberOfRoutes > 1 {
 			shortestDriveTimeRoute := findShortestRouteByDriveTime(kitchenIdDirectionsPair.Directions.Routes)
 			kitchenIdToRouteMap[kitchenIdDirectionsPair.ID] = shortestDriveTimeRoute
-		} else {
+		} else if numberOfRoutes == 1 {
 			kitchenIdToRouteMap[kitchenIdDirectionsPair.ID] = &kitchenIdDirectionsPair.Directions.Routes[0]
 		}
 	}
 
-	closestKitchenId := findClosestClusterTruckByDriveTime(kitchenIdToRouteMap)
+	closestKitchenId, err := findClosestClusterTruckByDriveTime(kitchenIdToRouteMap)
+	if err != nil {
+		return nil, nil, err
+	}
+
 	closestKitchenData := kitchens[closestKitchenId]
 	directionsToClosestKitchen := kitchenIdToRouteMap[closestKitchenId].Legs[0]
 
-	return &closestKitchenData, &directionsToClosestKitchen
+	return &closestKitchenData, &directionsToClosestKitchen, nil
 }
 
-func findClosestClusterTruckByDriveTime(kitchenIdToRouteMap map[string]*Route) string {
+func findClosestClusterTruckByDriveTime(kitchenIdToRouteMap map[string]*Route) (string, error) {
+	if len(kitchenIdToRouteMap) == 0 {
+		return "", errors.New("no routes were found from your starting address")
+	}
+
 	shortestDriveTime := math.MaxInt32
 	closestKitchenId := ""
 	for kitchenId, directions := range kitchenIdToRouteMap {
@@ -117,5 +135,5 @@ func findClosestClusterTruckByDriveTime(kitchenIdToRouteMap map[string]*Route) s
 		}
 	}
 
-	return closestKitchenId
+	return closestKitchenId, nil
 }
