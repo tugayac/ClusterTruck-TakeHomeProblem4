@@ -19,10 +19,10 @@ func TestGetGoogleMapsDirectionsWithSingleRoute(t *testing.T) {
 	}
 
 	kitchenDirectionsPair := make(chan *KitchenIDDirectionsPair, 1)
-	var wg sync.WaitGroup
-	wg.Add(1)
+	var waitGroup sync.WaitGroup
+	waitGroup.Add(1)
 	getGoogleMapsDirections(client, "origin", "destination", "kitchenId",
-		kitchenDirectionsPair, &wg)
+		kitchenDirectionsPair, &waitGroup)
 	close(kitchenDirectionsPair)
 
 	expected := "54.2 mi"
@@ -42,10 +42,10 @@ func TestGetGoogleMapsDirectionsWithMultipleRoutes(t *testing.T) {
 	}
 
 	kitchenDirectionsPair := make(chan *KitchenIDDirectionsPair, 1)
-	var wg sync.WaitGroup
-	wg.Add(1)
+	var waitGroup sync.WaitGroup
+	waitGroup.Add(1)
 	getGoogleMapsDirections(client, "origin", "destination", "kitchenId",
-		kitchenDirectionsPair, &wg)
+		kitchenDirectionsPair, &waitGroup)
 	close(kitchenDirectionsPair)
 
 	directions := (<-kitchenDirectionsPair).Directions
@@ -69,10 +69,10 @@ func TestGetGoogleMapsDirectionsError(t *testing.T) {
 	}
 
 	kitchenDirectionsPair := make(chan *KitchenIDDirectionsPair, 1)
-	var wg sync.WaitGroup
-	wg.Add(1)
+	var waitGroup sync.WaitGroup
+	waitGroup.Add(1)
 	getGoogleMapsDirections(client, "origin", "destination", "kitchenId",
-		kitchenDirectionsPair, &wg)
+		kitchenDirectionsPair, &waitGroup)
 	close(kitchenDirectionsPair)
 
 	expected := "There was an error deserializing the response from the GMaps Directions API: " +

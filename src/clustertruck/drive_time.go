@@ -92,6 +92,7 @@ func getDirectionsConcurrently(kitchens map[string]Kitchen, httpClient HttpClien
 		go getGoogleMapsDirections(httpClient, startingAddress, kitchen.Address,
 			kitchen.ID, allPossibleDirections, &waitGroup)
 	}
+
 	waitGroup.Wait()
 	close(allPossibleDirections)
 }
@@ -100,12 +101,14 @@ func findClosestKitchenAndRoute(allPossibleDirections chan *KitchenIDDirectionsP
 	kitchenIdToRouteMap map[string]*Route, kitchens map[string]Kitchen) (*Kitchen, *Leg, error) {
 
 	for kitchenIdDirectionsPair := range allPossibleDirections {
-		numberOfRoutes := len(kitchenIdDirectionsPair.Directions.Routes)
-		if numberOfRoutes > 1 {
-			shortestDriveTimeRoute := findShortestRouteByDriveTime(kitchenIdDirectionsPair.Directions.Routes)
-			kitchenIdToRouteMap[kitchenIdDirectionsPair.ID] = shortestDriveTimeRoute
-		} else if numberOfRoutes == 1 {
-			kitchenIdToRouteMap[kitchenIdDirectionsPair.ID] = &kitchenIdDirectionsPair.Directions.Routes[0]
+		if kitchenIdDirectionsPair.Error == "" {
+			numberOfRoutes := len(kitchenIdDirectionsPair.Directions.Routes)
+			if numberOfRoutes > 1 {
+				shortestDriveTimeRoute := findShortestRouteByDriveTime(kitchenIdDirectionsPair.Directions.Routes)
+				kitchenIdToRouteMap[kitchenIdDirectionsPair.ID] = shortestDriveTimeRoute
+			} else if numberOfRoutes == 1 {
+				kitchenIdToRouteMap[kitchenIdDirectionsPair.ID] = &kitchenIdDirectionsPair.Directions.Routes[0]
+			}
 		}
 	}
 

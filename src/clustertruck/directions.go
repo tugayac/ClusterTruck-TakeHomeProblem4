@@ -93,6 +93,13 @@ func getGoogleMapsDirections(httpClient HttpClient, origin string, destination s
 		return
 	}
 
+	if directions.Status != "OK" {
+		output <- &KitchenIDDirectionsPair{
+			Error: fmt.Sprintf("Status of GMaps Directions API response was %s", directions.Status),
+		}
+		return
+	}
+
 	output <- &KitchenIDDirectionsPair{
 		ID:         kitchenId,
 		Directions: &directions,
