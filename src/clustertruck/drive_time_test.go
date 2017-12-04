@@ -12,46 +12,30 @@ func TestFindDriveTimeToClosestClusterTruckKitchen(t *testing.T) {
 		DoFunc: func(req *http.Request) (*http.Response, error) {
 			if strings.Contains(req.URL.String(), "Indianapolis") {
 				mockGmapsResponseData := readMockFile("directions_response_multiple_routes_simplified_1.json")
-				return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       noopCloser{bytes.NewBuffer(mockGmapsResponseData)},
-				}, nil
+				return createHttpResponseForTest(http.StatusOK, bytes.NewBuffer(mockGmapsResponseData)), nil
 			} else if strings.Contains(req.URL.String(), "Bloomington") {
 				mockGmapsResponseData := readMockFile("directions_response_multiple_routes_simplified_2.json")
-				return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       noopCloser{bytes.NewBuffer(mockGmapsResponseData)},
-				}, nil
+				return createHttpResponseForTest(http.StatusOK, bytes.NewBuffer(mockGmapsResponseData)), nil
+
 			} else if strings.Contains(req.URL.String(), "Columbus") {
 				mockGmapsResponseData := readMockFile("directions_response_multiple_routes_simplified_3.json")
-				return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       noopCloser{bytes.NewBuffer(mockGmapsResponseData)},
-				}, nil
+				return createHttpResponseForTest(http.StatusOK, bytes.NewBuffer(mockGmapsResponseData)), nil
+
 			} else if strings.Contains(req.URL.String(), "Kansas+City") {
 				mockGmapsResponseData := readMockFile("directions_response_multiple_routes_simplified_4.json")
-				return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       noopCloser{bytes.NewBuffer(mockGmapsResponseData)},
-				}, nil
+				return createHttpResponseForTest(http.StatusOK, bytes.NewBuffer(mockGmapsResponseData)), nil
+
 			} else if strings.Contains(req.URL.String(), "Denver") {
 				mockGmapsResponseData := readMockFile("directions_response_multiple_routes_simplified_5.json")
-				return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       noopCloser{bytes.NewBuffer(mockGmapsResponseData)},
-				}, nil
+				return createHttpResponseForTest(http.StatusOK, bytes.NewBuffer(mockGmapsResponseData)), nil
+
 			} else if strings.Contains(req.URL.String(), "Cleveland") {
 				mockGmapsResponseData := readMockFile("directions_response_multiple_routes_simplified_6.json")
-				return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       noopCloser{bytes.NewBuffer(mockGmapsResponseData)},
-				}, nil
+				return createHttpResponseForTest(http.StatusOK, bytes.NewBuffer(mockGmapsResponseData)), nil
+
 			} else {
 				mockKitchenResponse := readMockFile("kitchen_response.json")
-				return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       noopCloser{bytes.NewBuffer(mockKitchenResponse)},
-				}, nil
+				return createHttpResponseForTest(http.StatusOK, bytes.NewBuffer(mockKitchenResponse)), nil
 			}
 		},
 	}
@@ -69,16 +53,10 @@ func TestFindDriveTimeToClosestClusterWhenNoRoutesAreFound(t *testing.T) {
 		DoFunc: func(req *http.Request) (*http.Response, error) {
 			if strings.Contains(req.URL.String(), "googleapis") {
 				mockGmapsResponseData := readMockFile("directions_response_no_route.json")
-				return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       noopCloser{bytes.NewBuffer(mockGmapsResponseData)},
-				}, nil
+				return createHttpResponseForTest(http.StatusOK, bytes.NewBuffer(mockGmapsResponseData)), nil
 			} else {
 				mockKitchenResponse := readMockFile("kitchen_response.json")
-				return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       noopCloser{bytes.NewBuffer(mockKitchenResponse)},
-				}, nil
+				return createHttpResponseForTest(http.StatusOK, bytes.NewBuffer(mockKitchenResponse)), nil
 			}
 		},
 	}

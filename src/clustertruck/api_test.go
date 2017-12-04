@@ -17,15 +17,9 @@ func TestAPIWithInvalidAccessKey(t *testing.T) {
 	client := &MockClient{
 		DoFunc: func(req *http.Request) (*http.Response, error) {
 			if strings.Contains(req.URL.String(), "kitchens") {
-				return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       noopCloser{bytes.NewBuffer(mockKitchenResponse)},
-				}, nil
+				return createHttpResponseForTest(http.StatusOK, bytes.NewBuffer(mockKitchenResponse)), nil
 			} else {
-				return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       noopCloser{bytes.NewBuffer(mockGmapsResponseData)},
-				}, nil
+				return createHttpResponseForTest(http.StatusOK, bytes.NewBuffer(mockGmapsResponseData)), nil
 			}
 		},
 	}
@@ -56,15 +50,9 @@ func TestAPIWithValidAccessKey(t *testing.T) {
 	client := &MockClient{
 		DoFunc: func(req *http.Request) (*http.Response, error) {
 			if strings.Contains(req.URL.String(), "kitchens") {
-				return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       noopCloser{bytes.NewBuffer(mockKitchenResponse)},
-				}, nil
+				return createHttpResponseForTest(http.StatusOK, bytes.NewBuffer(mockKitchenResponse)), nil
 			} else {
-				return &http.Response{
-					StatusCode: http.StatusOK,
-					Body:       noopCloser{bytes.NewBuffer(mockGmapsResponseData)},
-				}, nil
+				return createHttpResponseForTest(http.StatusOK, bytes.NewBuffer(mockGmapsResponseData)), nil
 			}
 		},
 	}

@@ -6,6 +6,8 @@ import (
 	"os"
 	"testing"
 	"reflect"
+	"bytes"
+	"net/http"
 )
 
 func readMockFile(filename string) []byte {
@@ -26,5 +28,12 @@ func assertResult(t *testing.T, expected interface{}, actual interface{}) {
 
 	if actual != expected {
 		t.Fatal(fmt.Sprintf("Expected %v, but got %v", expected, actual))
+	}
+}
+
+func createHttpResponseForTest(statusCode int, body *bytes.Buffer) *http.Response {
+	return &http.Response{
+		StatusCode: statusCode,
+		Body:       noopCloser{body},
 	}
 }

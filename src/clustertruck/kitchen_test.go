@@ -10,10 +10,7 @@ func TestGetClusterTruckKitchenInfoAddress(t *testing.T) {
 	mockKitchenResponse := readMockFile("kitchen_response.json")
 	client := &MockClient{
 		DoFunc: func(req *http.Request) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: http.StatusOK,
-				Body:       noopCloser{bytes.NewBuffer(mockKitchenResponse)},
-			}, nil
+			return createHttpResponseForTest(http.StatusOK, bytes.NewBuffer(mockKitchenResponse)), nil
 		},
 	}
 
@@ -26,10 +23,7 @@ func TestGetClusterTruckKitchenInfoAddress(t *testing.T) {
 func TestGetClusterTruckKitchenInfoReturnError(t *testing.T) {
 	client := &MockClient{
 		DoFunc: func(req *http.Request) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: http.StatusOK,
-				Body:       noopCloser{bytes.NewBufferString("invalidJson")},
-			}, nil
+			return createHttpResponseForTest(http.StatusOK, bytes.NewBufferString("invalidJson")), nil
 		},
 	}
 

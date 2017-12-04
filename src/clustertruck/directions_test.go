@@ -11,10 +11,7 @@ func TestGetGoogleMapsDirectionsWithSingleRoute(t *testing.T) {
 	mockGmapsResponseData := readMockFile("directions_response_single_route.json")
 	client := &MockClient{
 		DoFunc: func(req *http.Request) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: http.StatusOK,
-				Body:       noopCloser{bytes.NewBuffer(mockGmapsResponseData)},
-			}, nil
+			return createHttpResponseForTest(http.StatusOK, bytes.NewBuffer(mockGmapsResponseData)), nil
 		},
 	}
 
@@ -34,10 +31,8 @@ func TestGetGoogleMapsDirectionsWithMultipleRoutes(t *testing.T) {
 	mockGmapsResponseData := readMockFile("directions_response_multiple_routes.json")
 	client := &MockClient{
 		DoFunc: func(req *http.Request) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: http.StatusOK,
-				Body:       noopCloser{bytes.NewBuffer(mockGmapsResponseData)},
-			}, nil
+			return createHttpResponseForTest(http.StatusOK, bytes.NewBuffer(mockGmapsResponseData)), nil
+
 		},
 	}
 
@@ -61,10 +56,7 @@ func TestGetGoogleMapsDirectionsWithMultipleRoutes(t *testing.T) {
 func TestGetGoogleMapsDirectionsError(t *testing.T) {
 	client := &MockClient{
 		DoFunc: func(req *http.Request) (*http.Response, error) {
-			return &http.Response{
-				StatusCode: http.StatusOK,
-				Body:       noopCloser{bytes.NewBufferString("invalidJson")},
-			}, nil
+			return createHttpResponseForTest(http.StatusOK, bytes.NewBufferString("invalidJson")), nil
 		},
 	}
 
