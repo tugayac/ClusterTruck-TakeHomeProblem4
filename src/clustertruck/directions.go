@@ -8,6 +8,7 @@ import (
 	"os"
 	"sync"
 	"math"
+	"fmt"
 )
 
 // Contains data returned from a call to the GMaps Directions API
@@ -57,24 +58,39 @@ func getGoogleMapsDirections(httpClient HttpClient, origin string, destination s
 
 	req, err := http.NewRequest("GET", requestUrl.String(), nil)
 	if err != nil {
-		panic(err)
+		output <- &KitchenIDDirectionsPair{
+			Error: fmt.Sprintf("There was an error creating a request to get direction info: %s", err.Error()),
+		}
+		return
 	}
 
 	res, err := httpClient.Do(req)
+	defer res.Body.Close()
 	if err != nil {
-		panic(err)
+		output <- &KitchenIDDirectionsPair{
+			Error: fmt.Sprintf("There was an error performing a request to the GMaps Directions API: %s",
+				err.Error()),
+		}
+		return
 	}
 
 	body, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		panic(err)
+		output <- &KitchenIDDirectionsPair{
+			Error: fmt.Sprintf("There was an error reading the response from the GMaps Directions API: %s",
+				err.Error()),
+		}
+		return
 	}
-	defer res.Body.Close()
 
 	var directions GMapsDirections
 	err = json.Unmarshal(body, &directions)
 	if err != nil {
-		panic(err)
+		output <- &KitchenIDDirectionsPair{
+			Error: fmt.Sprintf("There was an error deserializing the response from the GMaps Directions API: %s",
+				err.Error()),
+		}
+		return
 	}
 
 	output <- &KitchenIDDirectionsPair{
