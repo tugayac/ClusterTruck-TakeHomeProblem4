@@ -48,6 +48,7 @@ Where `<access_key>` is the same access key mentioned above. If you are not runn
 * Google Maps Directions API can return multiple routes to a destination. As such, "Drive time to closest ClusterTruck" implies shortest drive time, regardless of driving distance.
 * It does not matter whether a user requests for the drive time to the nearest ClusterTruck kitchen inside or outside of a delivery area. They will always be given the drive time to the closest ClusterTruck kitchen.
 * The hours of ClusterTruck kitchens are ignored. This means a user will always be given the drive time to the closest ClusterTruck, regardless of whether it's open or closed.
+* Only the built-in libraries of the programming language can be used.
 
 ## Specifications and Design
 ### API
