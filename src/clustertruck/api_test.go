@@ -35,7 +35,7 @@ func TestAPIWithValidAccessKey(t *testing.T) {
 
 	request := httptest.NewRequest("POST", "/api/drive-time",
 		noopCloser{bytes.NewBufferString(`{"address": "Martinsville, IN"}`)})
-	request.Header.Add("Access-Key", "p20Nh0HOsYFZBxfM")
+	request.Header.Add("Access-Key", "JVvlYlqTBwhs2yu8")
 
 	api.ServeHTTP(recorder, request)
 

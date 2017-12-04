@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"bytes"
 	"fmt"
+	"sync"
 )
 
 func TestGetGoogleMapsDirectionsWithSingleRoute(t *testing.T) {
@@ -18,10 +19,15 @@ func TestGetGoogleMapsDirectionsWithSingleRoute(t *testing.T) {
 		},
 	}
 
-	directions := getGoogleMapsDirections(client, "origin", "destination")
+	kitchenDirectionsPair := make(chan *KitchenIDDirectionsPair, 1)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	getGoogleMapsDirections(client, "origin", "destination", "kitchenId",
+		kitchenDirectionsPair, &wg)
+	close(kitchenDirectionsPair)
 
 	expected := "54.2 mi"
-	actual := directions.Routes[0].Legs[0].Distance.Text
+	actual := (<-kitchenDirectionsPair).Directions.Routes[0].Legs[0].Distance.Text
 	if actual != expected {
 		t.Fatal(fmt.Sprintf("Expected %s, but got %s", expected, actual))
 	}
@@ -38,8 +44,14 @@ func TestGetGoogleMapsDirectionsWithMultipleRoutes(t *testing.T) {
 		},
 	}
 
-	directions := getGoogleMapsDirections(client, "origin", "destination")
+	kitchenDirectionsPair := make(chan *KitchenIDDirectionsPair, 1)
+	var wg sync.WaitGroup
+	wg.Add(1)
+	getGoogleMapsDirections(client, "origin", "destination", "kitchenId",
+		kitchenDirectionsPair, &wg)
+	close(kitchenDirectionsPair)
 
+	directions := (<-kitchenDirectionsPair).Directions
 	expected := 3
 	actual := len(directions.Routes)
 	if actual != expected {
@@ -52,4 +64,3 @@ func TestGetGoogleMapsDirectionsWithMultipleRoutes(t *testing.T) {
 		t.Fatal(fmt.Sprintf("Expected %d, but got %d", expected, actual))
 	}
 }
-

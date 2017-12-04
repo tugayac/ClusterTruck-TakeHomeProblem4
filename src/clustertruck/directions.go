@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"encoding/json"
 	"os"
+	"sync"
+	"math"
 )
 
 // Contains data returned from a call to the GMaps Directions API
@@ -36,7 +38,10 @@ type MeasurementValues struct {
 	Value int `json:"value"`
 }
 
-func getGoogleMapsDirections(httpClient HttpClient, origin string, destination string) *GMapsDirections {
+func getGoogleMapsDirections(httpClient HttpClient, origin string, destination string,
+	kitchenId string, output chan<- *KitchenIDDirectionsPair, waitGroup *sync.WaitGroup) {
+	defer waitGroup.Done()
+
 	apiKey := os.Getenv("CT_GMAPS_API_KEY")
 	requestUrl := url.URL{
 		Scheme: "https",
@@ -70,5 +75,28 @@ func getGoogleMapsDirections(httpClient HttpClient, origin string, destination s
 		panic(err)
 	}
 
-	return &directions
+	output <- &KitchenIDDirectionsPair{
+		ID: kitchenId,
+		Directions: &directions,
+	}
+}
+
+func findShortestDriveTimeOfAllRoutes(routes []Route) *Route {
+	shortestDriveTimeRoute := Route{
+		Legs: []Leg{
+			{
+				Duration: MeasurementValues{
+					Value: math.MaxInt32,
+				},
+			},
+		},
+	}
+	for _, route := range routes {
+		driveTime := route.Legs[0].Duration.Value
+		if driveTime < shortestDriveTimeRoute.Legs[0].Duration.Value {
+			shortestDriveTimeRoute = route
+		}
+	}
+
+	return &shortestDriveTimeRoute
 }

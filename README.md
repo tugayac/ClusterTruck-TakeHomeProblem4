@@ -37,13 +37,13 @@ Where `<access_key>` is the same access key mentioned above. If you are not runn
     * It should utilize the Google Maps Directions API to get the directions from the address to the closest ClusterTruck kitchen.
 
 ## Assumptions
-* All ClusterTruck Kitchens are assumed to be "active" even if their `active` status is set to `false`, so that the values returned by this endpoint have some variance.
+* All ClusterTruck Kitchens are assumed to be "active" even if their `active` status is set to `false`, so that the values returned by the drive time endpoint have some variance.
 * User's locale is `en_US` (American English, country USA).
-* Users are located in USA and expect distance values to be in _miles_.
-* Users are assumed to give well-formed addresses that include the street, number, city, and state, such as `123 Main St, Anywhere, OH`.
+* Users are located in the USA and expect distance values to be in _miles_.
+* Users are assumed to always give well-formed addresses that include the number, street, city, and state, such as `123 Main St, Anywhere, OH`. If they do not use this format, they will get an error.
 * Google Maps Directions API can return multiple routes to a destination. As such, "Drive time to closest ClusterTruck" implies shortest drive time, regardless of driving distance.
 * It does not matter whether a user requests for the drive time to the nearest ClusterTruck kitchen inside or outside of a delivery area. They will always be given the drive time to the closest ClusterTruck kitchen.
-* The hours of ClusterTruck kitchens are ignored.
+* The hours of ClusterTruck kitchens are ignored. This means a user will always be given the drive time to the closest ClusterTruck, regardless of whether it's open or closed.
 
 ## Specifications and Design
 ### API
@@ -66,14 +66,23 @@ curl -X "POST" "http://www.example.com/api/drive-time" \
      -d $'{"address": "123 Main St, Anywhere, OH"}'
 ```
 
-The users can expect to receive a `200` response with header `Content-Type: application/json` and a body containing something like the following:
+The users can expect to receive a `200` response with header `Content-Type: application/json` and a body containing the following:
 
 ```json
 {
     "drive_time": {
-        "value": 74829 // This will be in seconds
-        "text": "20 hours 47 mins"
-    }
+        "text": "29 mins",
+        "value": 1715,
+        "value_unit": "seconds"
+    },
+    "drive_distance": {
+        "text": "20.5 mi",
+        "value": 33043,
+        "value_unit": "meters"
+    },
+    "location_name": "Bloomington",
+    "start_address": "50 Bill's Blvd, Martinsville, IN",
+    "destination_address": "2618 E 10th St, Bloomington, IN, 47408"
 }
 ```
 
@@ -91,7 +100,6 @@ If there is a client-related error, they will receive a `400` response, with con
 The response will be similar if there was a server-related error, but the return code will be `500` instead.
 
 ### Backend
-
 #### ClusterTruck Kitchen Information
 This information will be retrieved from `https://api.staging.clustertruck.com/api/kitchens`, using the request header `Accept: application/vnd.api.clustertruck.com; version=2`.
 
@@ -117,7 +125,10 @@ If no `Access-Key` is provided or it's invalid, the user will receive an HTTP `4
 Go is a great language to setup HTTP endpoints fast, with the comprehensive http package it provides.
 
 ### Docker
-Docker makes it very easy to create a container that can be easily deployed on any machine, without having to clutter the file system of the host system.
+Docker makes it very easy to create a container that can be deployed on any machine, without having to clutter the file system of the host system.
 
 ## Future Improvements
+### Caching Requests
+If we detect that some users frequently make requests to our API from the same starting address, we may want to cache the driving time information we get from the GMaps Directions API (since this part of our application takes the longest).
+
 TODO
