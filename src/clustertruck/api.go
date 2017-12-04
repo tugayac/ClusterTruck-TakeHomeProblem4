@@ -8,43 +8,54 @@ import (
 	"fmt"
 )
 
-func SetupAPI() *http.ServeMux {
+func SetupAPI(httpClient HttpClient) *http.ServeMux {
 	httpMux := http.NewServeMux()
-	httpMux.HandleFunc("/api/drive-time", func(response http.ResponseWriter, request *http.Request) {
+
+	driveTimeEndpoint := http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 		if request.Method == "POST" {
-			if accessKeyIsValid(request.Header.Get("Access-Key")) {
-				var requestPayload RequestPayload
-				body, err := ioutil.ReadAll(request.Body)
-				if err != nil {
-					requestBodyCouldNotBeReadError(response, err, request)
-					return
-				}
-
-				err = json.Unmarshal(body, &requestPayload)
-				if err != nil {
-					requestBodyCouldNotBeDeserializedError(response, err, request)
-					return
-				}
-
-				httpClient := http.Client{}
-				closestClusterTruckInfo :=
-					findDriveTimeToClosestClusterTruckKitchen(&httpClient, requestPayload.StartingAddress)
-
-				responseBody, err := json.Marshal(closestClusterTruckInfo)
-				if err != nil {
-					resultsCouldNotBeReturnedError(response, err, closestClusterTruckInfo)
-					return
-				}
-
-				response.WriteHeader(http.StatusOK)
-				response.Write(responseBody)
-			} else {
-				unauthorizedError(response, request)
+			var requestPayload RequestPayload
+			body, err := ioutil.ReadAll(request.Body)
+			if err != nil {
+				requestBodyCouldNotBeReadError(response, err, request)
+				return
 			}
+
+			err = json.Unmarshal(body, &requestPayload)
+			if err != nil {
+				requestBodyCouldNotBeDeserializedError(response, err, request)
+				return
+			}
+
+			closestClusterTruckInfo :=
+				findDriveTimeToClosestClusterTruckKitchen(httpClient, requestPayload.StartingAddress)
+
+			responseBody, err := json.Marshal(closestClusterTruckInfo)
+			if err != nil {
+				resultsCouldNotBeReturnedError(response, err, closestClusterTruckInfo)
+				return
+			}
+
+			response.WriteHeader(http.StatusOK)
+			response.Write(responseBody)
 		}
 	})
 
+	httpMux.Handle("/api/drive-time", verifyAccessKeyMiddleware(driveTimeEndpoint))
+
 	return httpMux
+}
+
+func verifyAccessKeyMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		accessKey := os.Getenv("CT_API_ACCESS_KEY")
+		userAccessKey := request.Header.Get("Access-Key")
+		if userAccessKey != accessKey {
+			unauthorizedError(response, request)
+			return
+		}
+
+		next.ServeHTTP(response, request)
+	})
 }
 
 func unauthorizedError(response http.ResponseWriter, request *http.Request) {
@@ -88,10 +99,4 @@ func requestBodyCouldNotBeReadError(response http.ResponseWriter, err error, req
 			"body": request.Body,
 		},
 	}))
-}
-
-func accessKeyIsValid(userAccessKey string) bool {
-	accessKey := os.Getenv("CT_API_ACCESS_KEY")
-
-	return userAccessKey == accessKey
 }

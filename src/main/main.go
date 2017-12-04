@@ -13,7 +13,8 @@ const (
 )
 
 func main() {
-	httpMux := clustertruck.SetupAPI()
+	httpClient := http.Client{}
+	httpMux := clustertruck.SetupAPI(&httpClient)
 
 	log.Printf("Server running on address and port %s:%d\n", address, port)
 	err := http.ListenAndServe(fmt.Sprintf("%s:%d", address, port), httpMux)

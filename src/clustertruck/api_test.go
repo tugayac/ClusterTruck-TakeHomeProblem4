@@ -7,10 +7,30 @@ import (
 	"net/http"
 	"io/ioutil"
 	"encoding/json"
+	"strings"
 )
 
 func TestAPIWithInvalidAccessKey(t *testing.T) {
-	api := SetupAPI()
+	mockGmapsResponseData := readMockFile("directions_response_multiple_routes.json")
+	mockKitchenResponse := readMockFile("kitchen_response.json")
+
+	client := &MockClient{
+		DoFunc: func(req *http.Request) (*http.Response, error) {
+			if strings.Contains(req.URL.String(), "kitchens") {
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Body:       noopCloser{bytes.NewBuffer(mockKitchenResponse)},
+				}, nil
+			} else {
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Body:       noopCloser{bytes.NewBuffer(mockGmapsResponseData)},
+				}, nil
+			}
+		},
+	}
+
+	api := SetupAPI(client)
 	recorder := httptest.NewRecorder()
 
 	request := httptest.NewRequest("POST", "/api/drive-time",
@@ -30,7 +50,26 @@ func TestAPIWithInvalidAccessKey(t *testing.T) {
 }
 
 func TestAPIWithValidAccessKey(t *testing.T) {
-	api := SetupAPI()
+	mockGmapsResponseData := readMockFile("directions_response_multiple_routes.json")
+	mockKitchenResponse := readMockFile("kitchen_response.json")
+
+	client := &MockClient{
+		DoFunc: func(req *http.Request) (*http.Response, error) {
+			if strings.Contains(req.URL.String(), "kitchens") {
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Body:       noopCloser{bytes.NewBuffer(mockKitchenResponse)},
+				}, nil
+			} else {
+				return &http.Response{
+					StatusCode: http.StatusOK,
+					Body:       noopCloser{bytes.NewBuffer(mockGmapsResponseData)},
+				}, nil
+			}
+		},
+	}
+
+	api := SetupAPI(client)
 	recorder := httptest.NewRecorder()
 
 	request := httptest.NewRequest("POST", "/api/drive-time",
